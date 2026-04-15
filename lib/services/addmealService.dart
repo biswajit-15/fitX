@@ -29,7 +29,7 @@ class FoodApiService {
       }
 
     } on SocketException {
-      throw Exception("No internet connection");
+      throw Exception("Error: No internet connection");
     } on TimeoutException {
       throw Exception("Request timed out");
     } catch (e) {
