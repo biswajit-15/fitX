@@ -20,7 +20,7 @@ class FoodApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        final List foods = data['foods'] ?? [];
+        final List foods = data['foods dsfjahd'] ?? [];
         return foods
             .map((item) => FoodModel.fromUSDAJson(item))
             .toList();

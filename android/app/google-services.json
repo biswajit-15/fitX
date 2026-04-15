@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "171162071360",
+    "firebase_url": "https://fit-x-4a83a-default-rtdb.firebaseio.com",
+    "project_id": "fit-x-4a83a",
+    "storage_bucket": "fit-x-4a83a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:171162071360:android:bb3a5e69f91389c47c8aa5",
+        "android_client_info": {
+          "package_name": "com.example.fitx"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "171162071360-cn0q77vc8jopck4aei5uv5bsr57tmukm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fitx",
+            "certificate_hash": "3ef31c83696ca03fd3cb767101f49d924273cfb8"
+          }
+        },
+        {
+          "client_id": "171162071360-ri0ohl08h08jksvjsea7f8s0rrjmlhoa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fitx",
+            "certificate_hash": "479e5856597f3f9eaf5fc248eacc097b9eaa3b0f"
+          }
+        },
+        {
+          "client_id": "171162071360-vfh5kgpvmo0m6sg0qb9joikldjp5vjqd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlKhCmixbqgGUJTIbQ8PyEsVhh7Csei0c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "171162071360-vfh5kgpvmo0m6sg0qb9joikldjp5vjqd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "171162071360-jtra28o87e39pb7rbr0cu2onn1t9mbak.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fitx"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
