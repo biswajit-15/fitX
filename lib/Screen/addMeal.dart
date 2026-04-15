@@ -424,8 +424,9 @@ class _AddMealState extends State<AddMeal> with SingleTickerProviderStateMixin {
                             Icons.add, size: 50, color: Colors.white),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 8),//ssll
                     const Text(
+
                       "Manual Add",
                       style: TextStyle(
                         color: Colors.grey,
