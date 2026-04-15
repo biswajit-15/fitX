@@ -1,6 +1,7 @@
 import 'package:fitx/Provider/home_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../Model/addMeal_Model.dart';
 import '../Provider/addMeal_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -424,9 +425,8 @@ class _AddMealState extends State<AddMeal> with SingleTickerProviderStateMixin {
                             Icons.add, size: 50, color: Colors.white),
                       ),
                     ),
-                    const SizedBox(height: 8),//ssll
+                    const SizedBox(height: 8),
                     const Text(
-
                       "Manual Add",
                       style: TextStyle(
                         color: Colors.grey,
@@ -458,15 +458,39 @@ class _AddMealState extends State<AddMeal> with SingleTickerProviderStateMixin {
                             final food = await FoodServiceBarcode.fetchFoodByBarcode(result);
 
                             if (food != null) {
-                              print("Name: ${food.description}");
-                              print("Calories: ${food.calories}");
-                              print("protein: ${food.protein}");
-                              print("fat: ${food.fat}");
-                              print("Carbs: ${food.carbs}");
-                              print("quantity: ${food.servingSize}");
+                              final updatedFood = await showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => AddFoodSheet(food: food),
+                              );
+
+                              if (updatedFood != null) {
+                                // Save to Firebase
+                                final provider = context.read<Addmeal>();
+                                final user = FirebaseAuth.instance.currentUser;
+                                final home = Provider.of<homeprovider>(
+                                    context, listen: false);
+
+                                provider.addfood(
+                                  userid: user!.uid,
+                                  selectedDate: home.selectedDate,
+                                  gram: updatedFood.servingSize?.toInt() ?? 100,
+
+                                  food: null, // since you're using manual override
+
+                                  foodName: updatedFood.description,
+
+                                  manualCalories: updatedFood.calories,
+                                  manualProtein: updatedFood.protein,
+                                  manualFat: updatedFood.fat,
+                                  manualCarbs: updatedFood.carbs,
+                                );
 
 
+                              }
                             } else {
+                              UiHelper.showToast(context: context, text: "Invalid Barcode",backgroundColor: Colors.red);
                               print("No data found");
                             }
                           }
@@ -834,4 +858,207 @@ class _AddMealState extends State<AddMeal> with SingleTickerProviderStateMixin {
   }
 
 
+}
+
+
+//add food using barcode
+class AddFoodSheet extends StatefulWidget {
+  final FoodModel food;
+
+  const AddFoodSheet({super.key, required this.food});
+
+  @override
+  State<AddFoodSheet> createState() => _AddFoodSheetState();
+}
+
+class _AddFoodSheetState extends State<AddFoodSheet> {
+  late TextEditingController nameController;
+  late TextEditingController caloriesController;
+  late TextEditingController quantityController;
+  late TextEditingController proteinController;
+  late TextEditingController fatController;
+  late TextEditingController carbsController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    nameController =
+        TextEditingController(text: widget.food.description);
+
+    caloriesController =
+        TextEditingController(text: widget.food.calories?.toString() ?? "0");
+
+    quantityController =
+        TextEditingController(text: widget.food.servingSize?.toString() ?? "100");
+    proteinController =
+        TextEditingController(text: widget.food.protein?.toString() ?? "0");
+    fatController =
+        TextEditingController(text: widget.food.fat?.toString() ?? "0");
+    carbsController =
+        TextEditingController(text: widget.food.carbs?.toString() ?? "0");
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              /// 🔹 Title
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Add Food",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(onPressed: (){
+                    Navigator.pop(context);
+
+                  }, icon: Icon(Icons.close))
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              /// 🔹 Food Name
+              const Text("Food Name", style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              /// 🔹 Calories
+              const Text("Calories", style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: caloriesController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: "kcal",
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              /// 🔹 Macros Section
+              const Text("Macros", style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 10),
+
+              Row(
+                children: [
+                  Expanded(child: _buildMacroField("Protein", proteinController)),
+                  const SizedBox(width: 10),
+                  Expanded(child: _buildMacroField("Fat", fatController)),
+                  const SizedBox(width: 10),
+                  Expanded(child: _buildMacroField("Carbs", carbsController)),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              /// 🔹 Quantity
+              const Text("Quantity", style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: quantityController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: "grams / ml",
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              /// 🔹 Save Button
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade400,
+                    minimumSize: const Size(double.infinity, 55),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    final updatedFood = FoodModel(
+                      description: nameController.text,
+                      calories: double.tryParse(caloriesController.text),
+                      servingSize: double.tryParse(quantityController.text),
+                      protein: double.tryParse(proteinController.text),
+                      fat: double.tryParse(fatController.text),
+                      carbs: double.tryParse(carbsController.text),
+                    );
+
+                    Navigator.pop(context, updatedFood);
+                  },
+                  child: const Text(
+                    "Save Food",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 🔹 Reusable Macro Field Widget
+  Widget _buildMacroField(String label, TextEditingController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12)),
+        const SizedBox(height: 5),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

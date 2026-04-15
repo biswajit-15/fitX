@@ -47,7 +47,6 @@ class FoodServiceBarcode {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
         if (data['status'] == 1) {
           return FoodModel.fromBarcodeJson(data['product'],100);
         } else {
