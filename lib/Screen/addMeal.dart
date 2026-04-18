@@ -453,7 +453,6 @@ class _AddMealState extends State<AddMeal> with SingleTickerProviderStateMixin {
                           );
 
                           if (result != null) {
-                            print("Barcode: $result");
 
                             final food = await FoodServiceBarcode.fetchFoodByBarcode(result);
 

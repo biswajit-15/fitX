@@ -43,6 +43,8 @@ class homeprovider extends ChangeNotifier {
   int carbstarget = 0;
   int fattarget = 0;
   int proteintarget = 0;
+  String Name = "";
+  String url="";
 
   Future<void> fetchTargets() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -54,10 +56,13 @@ class homeprovider extends ChangeNotifier {
 
     if (snapshot.exists) {
       final data = Map<String, dynamic>.from(snapshot.value as Map);
+
       caltarget = (data['calories'] ?? 0);
       proteintarget = (data['protein'] ?? 0);
       fattarget = (data['fat'] ?? 0);
       carbstarget = (data['carbs'] ?? 0);
+      Name = data['name']?.toString() ?? "Guest";
+      url=data['photoUrl'];
       notifyListeners();
     }
   }

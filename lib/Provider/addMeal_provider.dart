@@ -110,7 +110,6 @@ class Addmeal with ChangeNotifier {
 
     } catch (e) {
       errorMessage = e.toString();
-      print("Error adding food: $e");
       notifyListeners();
     }
   }

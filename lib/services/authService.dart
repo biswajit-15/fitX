@@ -24,8 +24,6 @@ class AuthService {
       final GoogleSignInAccount? googleUser =
       await _googleSignIn.signIn();
 
-      debugPrint("STEP 1: Google user = ${googleUser?.email}");
-
       if (googleUser == null) {
         debugPrint("User cancelled login");
         return null;
@@ -34,8 +32,7 @@ class AuthService {
       final GoogleSignInAuthentication googleAuth =
       await googleUser.authentication;
 
-      debugPrint("STEP 2: AccessToken = ${googleAuth.accessToken}");
-      debugPrint("STEP 3: IdToken = ${googleAuth.idToken}");
+
 
       final AuthCredential credential =
       GoogleAuthProvider.credential(
@@ -43,12 +40,10 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      debugPrint("STEP 4: Credential created");
 
       final userCredential =
       await _auth.signInWithCredential(credential);
 
-      debugPrint("STEP 5: Firebase login success");
 
       return userCredential;
     } catch (e, stack) {

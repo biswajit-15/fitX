@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../Provider/home_provider.dart';
@@ -15,6 +16,8 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animController;
   late List<Animation<double>> _slideAnims;
+  final GlobalKey<ScaffoldState> _key = GlobalKey();
+  String _version = "";
 
   // ── Design tokens ──────────────────────────────────────────────────────────
   static const _bg = Color(0xFF080E1A);
@@ -32,7 +35,9 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-
+    PackageInfo.fromPlatform().then((info) {
+      setState(() => _version = "v${info.version}");
+    });
     // Listen to Firebase totals
     final user = FirebaseAuth.instance.currentUser;
     final provider = context.read<homeprovider>();
@@ -98,6 +103,8 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bg,
+      key: _key,
+      drawer: _drawer(context),
       body: Consumer<homeprovider>(
         builder: (context, provider, _) {
           return CustomScrollView(
@@ -114,15 +121,210 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  Widget _drawer(BuildContext context) {
+    final provider = Provider.of<homeprovider>(context);
+
+    return Drawer(
+      backgroundColor: const Color(0xFF080E1A), // ✅ matches _bg exactly
+      child: Column(
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(24, 56, 24, 28),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0D1626), Color(0xFF080E1A)], // ✅ navy-tinted, not purple
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Avatar
+                Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF4F8EF7).withOpacity(0.6), // ✅ blue accent, matches calColor
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFE84545).withOpacity(0.2),
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: provider.url.isNotEmpty
+                        ? Image.network(
+                      provider.url,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _defaultAvatar(),
+                    )
+                        : _defaultAvatar(),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Name
+                Text(
+                  provider.Name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+              ],
+            ),
+          ),
+
+          // Thin divider
+          Container(
+            height: 0.5,
+            color: Colors.white.withOpacity(0.06),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Menu items
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              children: [
+                _drawerItem(
+                  icon: Icons.person_outline_rounded,
+                  label: "Profile",
+                  onTap: () {},
+                ),
+                 Divider(color: Colors.grey,thickness: 0.2,),
+
+                _drawerItem(
+                  icon: Icons.settings_outlined,
+                  label: "Settings",
+                  onTap: () {},
+                ),
+                Divider(color: Colors.grey,thickness: 0.3,),
+                _drawerItem(
+                  icon: Icons.info_outline_rounded,
+                  label: "Info",
+                  onTap: () {},
+                ),
+
+              ],
+            ),
+          ),
+          Divider(color: Colors.grey,thickness: 0.6,),
+
+          // Logout at bottom
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 32),
+            child: Column(
+              children: [
+                Container(
+                  height: 0.5,
+                  color: Colors.white.withOpacity(0.06),
+                  margin: const EdgeInsets.only(bottom: 12),
+                ),
+                _drawerItem(
+                  icon: Icons.logout_rounded,
+                  label: "Log out",
+                  isDestructive: true,
+                  onTap: () => showLogoutDialog(context),
+                ),
+                Text(
+                  "Version: $_version",
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _defaultAvatar() {
+    return Container(
+      color: const Color(0xFF1E1E2A),
+      child: const Icon(Icons.person_rounded, color: Color(0xFF4F8EF7), size: 44),
+    );
+  }
+
+  Widget _drawerItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    final color = isDestructive ? const Color(0xFFE84545) : const Color(0xFFB0B0C8);
+    final hoverColor = isDestructive
+        ? const Color(0xFFE84545).withOpacity(0.08)
+        : Colors.white.withOpacity(0.05);
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        splashColor: hoverColor,
+        highlightColor: hoverColor,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 16),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isDestructive ? const Color(0xFFE84545) : Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.1,
+                ),
+              ),
+              if (!isDestructive) ...[
+                const Spacer(),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white.withOpacity(0.2),
+                  size: 18,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   // ── Header ──────────────────────────────────────────────────────────────────
   Widget _buildHeader(BuildContext context, homeprovider provider) {
     return _SlideIn(
       animation: _slideAnims[0],
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+        padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            IconButton(
+              onPressed: () {
+                _key.currentState?.openDrawer(); // ✅ THIS is the trigger
+              },
+              icon: Icon(Icons.menu, color: Colors.white, size: 40),
+            ),
             // Date selector
             GestureDetector(
               onTap: () => _pickDate(context),
@@ -161,20 +363,19 @@ class _HomeScreenState extends State<HomeScreen>
 
             // Streak / goal badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               decoration: BoxDecoration(
                 color: _card,
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: _cardBorder),
               ),
               child: Consumer<homeprovider>(
                 builder: (context, data, _) {
-                return  Row(
+                  return Row(
                     children: [
-                      IconButton(onPressed: (){
-                        showLogoutDialog(context);
-                      }, icon: Icon(Icons.person,size: 25,color: Colors.orange,))
-    ],
+                      Icon(Icons.local_fire_department,color: Colors.red,size: 30,),
+                      Text("0",style: TextStyle(color: Colors.white,fontSize: 20),)
+                    ],
                   );
                 },
               ),
@@ -512,7 +713,7 @@ class _SlideIn extends AnimatedWidget {
   final Widget child;
 
   const _SlideIn({required Animation<double> animation, required this.child})
-      : super(listenable: animation);
+    : super(listenable: animation);
 
   @override
   Widget build(BuildContext context) {
@@ -526,36 +727,153 @@ class _SlideIn extends AnimatedWidget {
     );
   }
 }
+
 void showLogoutDialog(BuildContext context) {
   showDialog(
     context: context,
+    barrierColor: Colors.black.withOpacity(0.6),
     builder: (context) {
-      return AlertDialog(
-        title: Text("Logout"),
-        content: Text("Are you sure you want to logout?"),
-        backgroundColor: Colors.white,
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // close dialog
-            },
-            child: Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              // 🔥 Logout logic
-              await FirebaseAuth.instance.signOut();
-
-              Navigator.pop(context); // close dialog
-
-              // 🔁 Go to login screen
-              Navigator.pushReplacementNamed(context, '/login');
-
-            },
-            child: Text("Logout",style: TextStyle(color: Colors.red),),
-          ),
-        ],
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: _LogoutDialog(),
       );
     },
   );
+}
+
+class _LogoutDialog extends StatelessWidget {
+  const _LogoutDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF111C2E),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF1E2D45), width: 0.5),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Icon + Text ───────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+            child: Column(
+              children: [
+                // Logout icon circle
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFE24B4A).withOpacity(0.1),
+                    border: Border.all(
+                      color: const Color(0xFFE24B4A).withOpacity(0.2),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    color: Color(0xFFE24B4A),
+                    size: 24,
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                const Text(
+                  "Log out?",
+                  style: TextStyle(
+                    color: Color(0xFFEAF0FB),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                const Text(
+                  "You'll need to sign in again to access\nyour nutrition data and streak.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFF5A7099),
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Divider ───────────────────────────────────────────────
+          Container(
+            height: 0.5,
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            color: const Color(0xFF1E2D45),
+          ),
+
+          // ── Buttons ───────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              children: [
+                // Confirm logout
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await FirebaseAuth.instance.signOut();
+                      Navigator.pushReplacementNamed(context, '/login');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE24B4A),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      "Yes, log out",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // Cancel
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1A2640),
+                      foregroundColor: const Color(0xFFEAF0FB),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(
+                          color: Color(0xFF1E2D45),
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
