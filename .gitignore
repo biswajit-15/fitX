@@ -10,8 +10,13 @@
 .history
 .svn/
 .swiftpm/
-.env
-migrate_working_dir/
+# Firebase secrets
+google-services.json
+GoogleService-Info.plist
+
+# Environment files
+*.env
+.env.*migrate_working_dir/
 
 # IntelliJ related
 *.iml
