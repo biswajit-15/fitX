@@ -1,3 +1,4 @@
+import 'package:fitx/Screen/profileSetup.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -206,7 +207,9 @@ class _HomeScreenState extends State<HomeScreen>
                 _drawerItem(
                   icon: Icons.person_outline_rounded,
                   label: "Profile",
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileSetup(),));
+                  },
                 ),
                  Divider(color: Colors.grey,thickness: 0.2,),
 

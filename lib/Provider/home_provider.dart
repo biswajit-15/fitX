@@ -38,13 +38,21 @@ class homeprovider extends ChangeNotifier {
     return DateFormat('d-MMM').format(selectedDate);
   }
 
-  // ───────────────── TARGETS ─────────────────
+  // ───────────────── User target Credential ─────────────────
+  //used -> home screen to show target,Drawer screen and also profile details
   int caltarget = 0;
   int carbstarget = 0;
   int fattarget = 0;
   int proteintarget = 0;
   String Name = "";
   String url="";
+  String goal="";
+  String gender="";
+  int weight=0;
+  int height=0;
+  String diteType="";
+  int age=0;
+
 
   Future<void> fetchTargets() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -63,11 +71,18 @@ class homeprovider extends ChangeNotifier {
       carbstarget = (data['carbs'] ?? 0);
       Name = data['name']?.toString() ?? "Guest";
       url=data['photoUrl'];
+      goal=data['goal'];
+      gender=data['gender'];
+      height=data['height'];
+      diteType=data['dietType'];
+      age=data['age'];
+      weight=data['weight'];
       notifyListeners();
     }
   }
 
-  // ───────────────── TOTALS ─────────────────
+  // ────────────────Calculate Totals User intake daily Nutrition ─────────────────
+
   double calories = 0;
   double protein = 0;
   double fat = 0;
@@ -112,6 +127,69 @@ class homeprovider extends ChangeNotifier {
 
       notifyListeners();
     });
+  }
+  //----------------Update profile------------------//
+  void updateAllFields(Map<String, String> data) {
+    try {
+      // 🔹 Basic fields
+      Name = data["Name"] ?? Name;
+      gender = data["Gender"] ?? gender;
+      diteType = data["Diet Type"] ?? diteType;
+      goal = data["Goal"] ?? goal;
+
+      // 🔹 Numeric fields (safe parsing)
+      age = int.tryParse(data["Age"] ?? "") ?? age;
+      caltarget = int.tryParse(data["Targeted cal"] ?? "") ?? caltarget;
+      proteintarget =
+          int.tryParse(data["Targeted Protein"] ?? "") ?? proteintarget;
+      carbstarget =
+          int.tryParse(data["Targeted Carbs"] ?? "") ?? carbstarget;
+      fattarget = int.tryParse(data["Targeted Fat"] ?? "") ?? fattarget;
+
+      // 🔹 Notify UI
+      notifyListeners();
+
+      // 🔹 TODO: Save to Firebase / API
+      saveToRealtimeDB();
+    } catch (e) {
+      debugPrint("Update Error: $e");
+    }
+  }
+
+
+  //--------User Edit own Profile data and save on Firebase-------
+  Future<void> saveToRealtimeDB() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        debugPrint("User not logged in");
+        return;
+      }
+
+      await FirebaseDatabase.instance
+          .ref("users/${user.uid}/profile")
+          .set({
+        "name": Name,
+        "age": age,
+        "gender": gender,
+        "dietType": diteType,
+        "goal": goal,
+        "calories": caltarget,
+        "protein": proteintarget,
+        "carbs": carbstarget,
+        "fat": fattarget,
+        "photoUrl": url,
+        "weight":weight,
+        "height":height,
+        "profileCompleted":true,
+      });
+
+      debugPrint("Data saved successfully");
+
+    } catch (e) {
+      debugPrint("Error saving data: $e");
+    }
   }
 
 
